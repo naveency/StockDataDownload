@@ -4,3 +4,5 @@ spring:
     username: naveen
   jpa:
     generate-ddl: true
+  main:
+    web-application-type: none
