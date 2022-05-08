@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @IdClass(StockDataId.class)
-@Getter @Setter
+@Getter
+@Setter
 public class Daily implements Serializable {
     @Id
     private LocalDate date;
