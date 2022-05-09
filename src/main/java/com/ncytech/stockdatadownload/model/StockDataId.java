@@ -1,13 +1,11 @@
 package com.ncytech.stockdatadownload.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDate;
 
-@Getter
-@Setter
+@Data
 public class StockDataId implements Serializable {
     private LocalDate date;
     private Security security;

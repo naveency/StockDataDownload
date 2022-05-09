@@ -3,19 +3,19 @@ package com.ncytech.stockdatadownload.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
+import javax.persistence.*;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Entity
 @Getter
 @Setter
 @IdClass(SecurityId.class)
+@EntityListeners(AuditingEntityListener.class)
 public class Security implements Serializable {
     @Id
     @JsonProperty("Code")
@@ -33,8 +33,9 @@ public class Security implements Serializable {
     @JsonProperty("Type")
     private String type;
 
-    @CreationTimestamp
-    private LocalDateTime createDateTime;
-    @UpdateTimestamp
-    private LocalDateTime updateDateTime;
+    @CreatedDate
+    @Column(updatable = false)
+    private Instant createDateTime;
+    @LastModifiedDate
+    private Instant updateDateTime;
 }

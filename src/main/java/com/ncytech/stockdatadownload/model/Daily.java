@@ -2,16 +2,13 @@ package com.ncytech.stockdatadownload.model;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @IdClass(StockDataId.class)
@@ -31,8 +28,9 @@ public class Daily implements Serializable {
     private float volume;
     private float adjustedClose;
 
-    @CreationTimestamp
-    private LocalDateTime createDateTime;
-    @UpdateTimestamp
-    private LocalDateTime updateDateTime;
+    @CreatedDate
+    @Column(updatable = false)
+    private Instant createDateTime;
+    @LastModifiedDate
+    private Instant updateDateTime;
 }
