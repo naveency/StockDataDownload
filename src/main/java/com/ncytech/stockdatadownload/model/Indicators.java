@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 @Entity
-@IdClass(StockDataId.class)
+@IdClass(DailyId.class)
 @Getter
 @Setter
 public class Indicators implements Serializable {
@@ -19,8 +19,9 @@ public class Indicators implements Serializable {
     @Id
     private LocalDate date;
     @Id
-    @ManyToOne
-    private Security security;
+    private String ticker;
+    @Id
+    private String exchange;
 
     private float volumeSma50;
     private float ema10;

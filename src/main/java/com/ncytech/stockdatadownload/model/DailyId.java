@@ -6,8 +6,9 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 @Data
-public class StockDataId implements Serializable {
+public class DailyId implements Serializable {
     private LocalDate date;
-    private Security security;
+    private String ticker;
+    private String exchange;
 }
 

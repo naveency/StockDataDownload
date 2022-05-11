@@ -40,11 +40,13 @@ public class EodHistoricalDataHandler {
 
     private static final LocalDate START_DATE = LocalDate.of(2000,01,01);
 
-    public EodHistoricalDataHandler(WebClient.Builder builder, SecurityRepository securityRepository) {
+    public EodHistoricalDataHandler(WebClient.Builder builder, SecurityRepository securityRepository,
+                                    DailyRepository dailyRepository) {
         this.webClient = builder.baseUrl("https://eodhistoricaldata.com/api/").
                 codecs(clientCodecConfigurer -> clientCodecConfigurer.defaultCodecs()
                         .maxInMemorySize(10 * 1024 * 1024)).build();
         this.securityRepository = securityRepository;
+        this.dailyRepository = dailyRepository;
     }
 
     public void processSymbolsFromExchange(String exchangeName) {
@@ -79,7 +81,7 @@ public class EodHistoricalDataHandler {
             logger.info("Done with " + security.getTicker());
             securityRepository.save(security);
             return security;
-        });
+        }).collect(Collectors.toList());
     }
 
     public String[] getSectorIndustry(String ticker, String exchange) {
@@ -123,16 +125,31 @@ public class EodHistoricalDataHandler {
         return dailyList;
     }
 
-    public void startDailyDownload() {
-        List<Security> securityList = securityRepository.findAll();
-        securityList.stream().(security -> {
-            List<EodHdDaily> = webClient.get().uri(uriBuilder -> uriBuilder.path("exchange-symbol-list/" + exchangeName).
+    public void startDailyDownload(String exchange) {
+        List<Security> securityList = exchange == null ? securityRepository.findAll()
+                : securityRepository.findSecuritiesByExchange(exchange);
+        securityList.stream().map(security -> {
+
+            Mono<List<Daily>> result = webClient.get().uri(uriBuilder -> uriBuilder.path("eod/" + security.getTicker() + "." + security.getExchange()).
                     queryParam("api_token", API_KEY).
                     queryParam("fmt", "json").
-                    build()).retrieve()
+                    queryParam("from", START_DATE)
+                    .build()).retrieve().bodyToMono(new ParameterizedTypeReference<List<Daily>>() {
+            });
 
+            List<Daily> dailyList = result.block();
+            dailyList = dailyList.stream().map(daily -> {
+                daily.setTicker(security.getTicker());
+                daily.setExchange(security.getExchange());
+
+                return daily;
+            }).collect(Collectors.toList());
+
+            dailyRepository.saveAll(dailyList);
+
+            logger.info("Downloaded data for " + security.getTicker() + "." + security.getExchange());
             return security;
-        });
+        }).collect(Collectors.toList());
     }
 }
 
@@ -142,22 +159,4 @@ class SectorIndustry {
     private String sector;
     @JsonProperty("industry")
     private String industry;
-}
-
-@Data
-class EodHdDaily {
-    @JsonProperty("date")
-    private LocalDate date;
-    @JsonProperty("open")
-    private float open;
-    @JsonProperty("high")
-    private float high;
-    @JsonProperty("low")
-    private float low;
-    @JsonProperty("close")
-    private float close;
-    @JsonProperty("adjusted_close")
-    private float adjustedClose;
-    @JsonProperty("volume")
-    private long volume;
 }
