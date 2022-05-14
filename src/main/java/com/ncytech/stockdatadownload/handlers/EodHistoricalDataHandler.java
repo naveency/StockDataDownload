@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -128,13 +129,21 @@ public class EodHistoricalDataHandler {
     public void startDailyDownload(String exchange) {
         List<Security> securityList = exchange == null ? securityRepository.findAll()
                 : securityRepository.findSecuritiesByExchange(exchange);
-        securityList.stream().map(security -> {
+        securityList.parallelStream().map(security -> {
+
+            LocalDate date = dailyRepository.getMaxDailyDateForSecurity(security.getTicker(), security.getExchange());
+            if (LocalDate.now().equals(date)  && "US".equals(security.getExchange())) {
+                return security;
+            }
 
             Mono<List<Daily>> result = webClient.get().uri(uriBuilder -> uriBuilder.path("eod/" + security.getTicker() + "." + security.getExchange()).
                     queryParam("api_token", API_KEY).
                     queryParam("fmt", "json").
                     queryParam("from", START_DATE)
                     .build()).retrieve().bodyToMono(new ParameterizedTypeReference<List<Daily>>() {
+            }).onErrorMap(throwable -> {
+                logger.log(Level.SEVERE, "Error in processing " + security.getTicker() + "." + security.getExchange());
+                return new Exception("Error in processing " + security.getTicker() + "." + security.getExchange());
             });
 
             List<Daily> dailyList = result.block();
@@ -150,6 +159,23 @@ public class EodHistoricalDataHandler {
             logger.info("Downloaded data for " + security.getTicker() + "." + security.getExchange());
             return security;
         }).collect(Collectors.toList());
+    }
+
+    public void startDailyBulkDownload(String exchange) {
+        Map<String, Security> symbolsFromDbMap = new HashMap<>();
+        MapUtils.populateMap(symbolsFromDbMap, securityRepository.findSecuritiesByExchange(exchange), Security::getTicker);
+
+        Mono<List<Daily>> result = webClient.get().uri(uriBuilder -> uriBuilder.path("eod-bulk-last-day/" + exchange).
+                queryParam("api_token", API_KEY).
+                queryParam("fmt", "json")
+                .build()).retrieve().bodyToMono(new ParameterizedTypeReference<List<Daily>>() {
+        });
+
+        List<Daily> dailyList = result.block();
+        dailyList = dailyList.stream().filter(daily -> symbolsFromDbMap.get(daily.getTicker()) != null).collect(Collectors.toList());
+
+        dailyRepository.saveAll(dailyList);
+
     }
 }
 

@@ -28,9 +28,10 @@ public class StockDataDownloadApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         logger.info("Starting Stock Download");
-        //eodHistoricalDataHandler.processSymbolsFromExchange("US");
-        //eodHistoricalDataHandler.processSymbolsFromExchange("COMM");
-        eodHistoricalDataHandler.startDailyDownload("US");;
+        eodHistoricalDataHandler.processSymbolsFromExchange("US");
+        eodHistoricalDataHandler.processSymbolsFromExchange("COMM");
+        eodHistoricalDataHandler.startDailyDownload("US");
+        eodHistoricalDataHandler.startDailyDownload("COMM");
 
         logger.info("Done with stock download");
     }

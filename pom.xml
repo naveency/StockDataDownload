@@ -38,6 +38,11 @@
             <artifactId>commons-collections4</artifactId>
             <version>4.4</version>
         </dependency>
+        <dependency>
+            <groupId>org.ta4j</groupId>
+            <artifactId>ta4j-core</artifactId>
+            <version>0.14</version>
+        </dependency>
 
         <dependency>
             <groupId>org.postgresql</groupId>

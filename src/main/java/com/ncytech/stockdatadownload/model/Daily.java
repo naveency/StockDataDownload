@@ -25,8 +25,10 @@ public class Daily implements Serializable {
     @JsonProperty("date")
     private LocalDate date;
     @Id
+    @JsonProperty("code")
     private String ticker;
     @Id
+    @JsonProperty("exchange_short_name")
     private String exchange;
 
     @JsonProperty("open")
